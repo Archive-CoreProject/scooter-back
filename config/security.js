@@ -4,12 +4,14 @@ const { getUser } = require("./user/crud");
 
 const authUser = async (userId, password) => {
   const user = await getUser(userId, password);
-  if (!user) {
+  if (user.length === 0) {
     return false;
   }
-  if (!(await verifyPassword(password, user["user_pw"]))) {
+  const isVerified = await verifyPassword(password, user[0]["user_pw"]);
+  if (!isVerified) {
     return false;
   }
+
   return user;
 };
 
