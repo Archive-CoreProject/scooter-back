@@ -9,6 +9,20 @@
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
     "mysql2": "^3.11.0",
+    "parcel": "^2.12.0",
     "winston": "^3.14.2"
-  }
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  },
+  "scripts": {
+    "start": "node ./app.js"
+  },
+  "name": "scooter-back",
+  "version": "1.0.0",
+  "description": "Node.js를 사용하여 아두이노와 웹사이트 간 데이터 연결",
+  "main": "app.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
