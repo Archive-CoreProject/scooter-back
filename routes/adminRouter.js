@@ -1,18 +1,19 @@
 const express = require("express");
 const { updateUserRole } = require("../config/admin/crud");
+const { verifyToken, verifyAdmin } = require("../config/security");
 const router = express.Router();
 
 router.get("/", (req, res) => {
   res.send("Admin Router");
 });
 
-router.post("/update-role", async (req, res) => {
+router.post("/update-role", verifyToken, verifyAdmin, async (req, res) => {
   const { userId, role } = req.body;
   const result = await updateUserRole(userId, role);
   if (result) {
-    res.status(200).end();
+    res.status(200).send({ code: 200, message: "유저 권한 수정" }).end();
   } else {
-    res.status(403).end();
+    res.status(500).send({ code: 500, message: "서버 오류 발생" }).end();
   }
 });
 
