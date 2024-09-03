@@ -40,14 +40,14 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/signup", async (req, res) => {
-  // userId, userPw, userName, birth, phone, role
+  // userId, userPw, userName, birth, phone
   const userInfo = req.body;
   const result = await insertUser(userInfo);
   if (result) {
     console.log("회원가입 성공");
     res.status(200).end();
   } else {
-    res.status(409).end();
+    res.status(500).send({ message: "오류가 발생했습니다. 다시 시도해주세요." }).end();
   }
 });
 

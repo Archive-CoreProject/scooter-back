@@ -2,9 +2,9 @@ const conn = require("../database");
 const bcrypt = require("bcrypt");
 
 const insertUser = async (userInfo) => {
-  const { userId, userPw, userName, birth, phone, role } = userInfo;
+  const { userId, userPw, userName, birth, phone } = userInfo;
   const hashedPw = await bcrypt.hash(userPw, 10);
-  const data = [userId, hashedPw, userName, birth, phone, role];
+  const data = [userId, hashedPw, userName, birth, phone, "일반"];
   const sql =
     "insert into tb_user(user_id, user_pw, user_name, user_birthdate, user_phone, user_role) values(?,?,?,?,?,?)";
 
