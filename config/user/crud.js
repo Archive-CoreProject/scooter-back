@@ -29,7 +29,8 @@ const getUser = async (userId) => {
 };
 
 const readUserList = async () => {
-  const sql = "select * from tb_user order by joined_at";
+  const sql =
+    "select user_id, user_name, user_role, user_phone from tb_user where user_role != '관리자' order by joined_at";
 
   const [rows, fields] = await conn.promise().query(sql);
   return rows;

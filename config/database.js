@@ -9,6 +9,8 @@ const conn = mysql.createConnection({
   database: process.env.DB,
   port: process.env.PORT,
   host: process.env.HOST,
+  connectionLimit: 500,
+  // connectTimeout:
 });
 
 conn.connect();

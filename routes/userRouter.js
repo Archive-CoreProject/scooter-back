@@ -1,6 +1,6 @@
 const express = require("express");
 const { insertUser, getUser, readUserList } = require("../config/user/crud");
-const { authUser } = require("../config/security");
+const { authUser, verifyToken, verifyAdmin } = require("../config/security");
 const router = express.Router();
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
@@ -12,9 +12,10 @@ router.get("/", (req, res) => {
 });
 
 router.post("/checkid", async (req, res) => {
-  const userId = req.body.id;
+  const userId = req.body.userId;
   const result = await getUser(userId);
-  if (result) {
+  console.log(result);
+  if (result.length > 0) {
     res.status(409).end();
   } else {
     res.status(200).end();
@@ -25,10 +26,12 @@ router.post("/login", async (req, res) => {
   const key = process.env.SECRET_KEY;
   const { userId, userPw } = req.body;
   const user = await authUser(userId, userPw);
+  console.log(user);
   let token = "";
 
   if (user.length > 0) {
     const data = user[0];
+    console.log(data);
     let isAdmin = false;
     // role : "일반", "관리자", "제한" 존재
     if (data.user_role === "관리자") {
@@ -47,7 +50,7 @@ router.post("/login", async (req, res) => {
       },
       key,
       {
-        expiresIn: "60m",
+        expiresIn: "600m",
         issuer: "토큰발급자",
       }
     );
@@ -70,9 +73,9 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-router.get("/users", async (req, res) => {
+router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
   const result = await readUserList();
-  res.send(result);
+  res.status(200).send({ code: 200, result });
 });
 
 module.exports = router;

@@ -5,7 +5,6 @@ const updateUserRole = async (userId, role) => {
   try {
     await conn.promise().query(sql, [role, userId]);
     conn.commit();
-    console.log("유저 권한 수정");
     return true;
   } catch (err) {
     console.log(err);
