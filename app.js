@@ -6,12 +6,15 @@ const bp = require("body-parser");
 const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
 const boardRouter = require("./routes/boardRouter");
+const helmetRouter = require("./routes/helmetRouter");
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(bp.urlencoded({ extended: true }));
 app.use("/user", userRouter);
 app.use("/admin", adminRouter);
+app.use("/board", boardRouter);
+app.use("/helmet", helmetRouter);
 // app.use("/board", boardRouter);
 
 app.get("/", (req, res) => {

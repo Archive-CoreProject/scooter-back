@@ -28,6 +28,12 @@ const getUser = async (userId) => {
   }
 };
 
+const getUserByPhone = async (phone) => {
+  const sql = "select user_id from tb_user where user_phone = ?";
+  const [rows] = await conn.promise().query(sql, [phone]);
+  return rows[0];
+};
+
 const readUserList = async () => {
   const sql =
     "select user_id, user_name, user_role, user_phone from tb_user where user_role != '관리자' order by joined_at";
@@ -36,4 +42,12 @@ const readUserList = async () => {
   return rows;
 };
 
-module.exports = { insertUser, getUser, readUserList };
+const readUserHistory = async (userId) => {
+  // 날짜, 킥보드식별자, 대여 시작/반납 시간, 결제 금액
+  const sql = "select scooter_idx, rental_dt, rental_st_tm, rental_rt_tm, paid_amount from tb_rental where user_id = ?";
+
+  const [rows, fields] = await conn.promise().query(sql, [userId]);
+  return rows;
+};
+
+module.exports = { insertUser, getUser, getUserByPhone, readUserList, readUserHistory };

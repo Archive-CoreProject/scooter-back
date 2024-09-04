@@ -1,5 +1,5 @@
 const express = require("express");
-const { insertUser, getUser, readUserList } = require("../config/user/crud");
+const { insertUser, getUser, readUserList, readUserHistory } = require("../config/user/crud");
 const { authUser, verifyToken, verifyAdmin } = require("../config/security");
 const router = express.Router();
 const dotenv = require("dotenv");
@@ -76,6 +76,11 @@ router.post("/signup", async (req, res) => {
 router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
   const result = await readUserList();
   res.status(200).send({ code: 200, result });
+});
+
+router.get("/user/history", verifyToken, verifyAdmin, async (req, res) => {
+  const { userId } = req.body;
+  const result = await readUserHistory(userId);
 });
 
 module.exports = router;
