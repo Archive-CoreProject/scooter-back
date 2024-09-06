@@ -19,7 +19,7 @@ const insertAuthCode = async (userId, code, scooterIdx) => {
   }
 };
 
-// 유저가 요청하는 api.
+// 유저가 요청하는 쿼리문
 const getAuthCode = async (userId, scooterIdx) => {
   const sql = "select auth_code from tb_user where user_id = ? and use_scooter_idx = ?";
   try {
@@ -33,14 +33,24 @@ const getAuthCode = async (userId, scooterIdx) => {
   }
 };
 
+// 킥보드에서 요청하는 쿼리문
 const getMyScooterIdxCode = async (scooterIdx) => {
   const sql = "select auth_code, user_id, is_verified from tb_user where use_scooter_idx = ?";
   try {
     const [rows] = await conn.promise().query(sql, [scooterIdx]);
+    console.log(rows);
     return rows[0];
   } catch (err) {
     console.log(err.sqlMessage);
   }
+};
+
+// 헬멧이 보관함에 담겨있을 때 / 없을 때 사용중인거 업데이트하는 쿼리문
+const updateUsedScooter = async (scooterIdx, detected) => {
+  const sql = "update tb_scooter set scooter_use = ? where scooter_idx = ?";
+
+  await conn.promise().query(sql, [detected, scooterIdx]);
+  conn.commit();
 };
 
 const updateVerified = async (userId) => {
@@ -48,6 +58,14 @@ const updateVerified = async (userId) => {
 
   await conn.promise().query(sql, [userId]);
   conn.commit();
+};
+
+// 헬멧이 보관함에 담겨있는지 확인하는 쿼리문
+const verifyDetected = async (scooterIdx) => {
+  const sql = "select scooter_use from tb_scooter where scooter_idx = ?";
+
+  const [rows] = await conn.promise().query(sql, [scooterIdx]);
+  return rows[0];
 };
 
 const delAuthCode = async (userId) => {
@@ -95,4 +113,6 @@ module.exports = {
   getMyScooterIdxCode,
   updateVerified,
   finishUse,
+  updateUsedScooter,
+  verifyDetected,
 };

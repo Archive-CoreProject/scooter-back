@@ -11,10 +11,15 @@ router.get("/", (req, res) => {
   res.send("User Router");
 });
 
+router.get("/verify", verifyToken, (req, res) => {
+  const isAdmin = req.decoded.admin;
+  res.status(200).send({ code: 200, message: "로그인 확인", isAdmin: isAdmin });
+});
+
+// 아이디 중복 체크 api
 router.post("/checkid", async (req, res) => {
   const userId = req.body.userId;
   const result = await getUser(userId);
-  console.log(result);
   if (result.length > 0) {
     res.status(409).end();
   } else {
@@ -22,16 +27,15 @@ router.post("/checkid", async (req, res) => {
   }
 });
 
+// 로그인 api
 router.post("/login", async (req, res) => {
   const key = process.env.SECRET_KEY;
   const { userId, userPw } = req.body;
   const user = await authUser(userId, userPw);
-  console.log(user);
   let token = "";
 
   if (user.length > 0) {
     const data = user[0];
-    console.log(data);
     let isAdmin = false;
     // role : "일반", "관리자", "제한" 존재
     if (data.user_role === "관리자") {
@@ -61,6 +65,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// 회원가입 api
 router.post("/signup", async (req, res) => {
   // userId, userPw, userName, birth, phone
   const userInfo = req.body;
@@ -73,14 +78,17 @@ router.post("/signup", async (req, res) => {
   }
 });
 
+// 가입한 유저 전체 조회 api
 router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
   const result = await readUserList();
   res.status(200).send({ code: 200, result });
 });
 
-router.get("/user/history", verifyToken, verifyAdmin, async (req, res) => {
-  const { userId } = req.body;
+// 특정 유저 이용내역 조회 api
+router.get("/history", verifyToken, verifyAdmin, async (req, res) => {
+  const { userId } = req.query;
   const result = await readUserHistory(userId);
+  res.send(result);
 });
 
 module.exports = router;

@@ -7,6 +7,7 @@ const userRouter = require("./routes/userRouter");
 const adminRouter = require("./routes/adminRouter");
 const boardRouter = require("./routes/boardRouter");
 const helmetRouter = require("./routes/helmetRouter");
+const payRouter = require("./routes/payRouter");
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -15,7 +16,7 @@ app.use("/user", userRouter);
 app.use("/admin", adminRouter);
 app.use("/board", boardRouter);
 app.use("/helmet", helmetRouter);
-// app.use("/board", boardRouter);
+app.use("/pay", payRouter);
 
 app.get("/", (req, res) => {
   res.json({ test: "world" });

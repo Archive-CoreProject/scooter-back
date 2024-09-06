@@ -7,6 +7,8 @@ const {
   getMyScooterIdxCode,
   updateVerified,
   finishUse,
+  updateUsedScooter,
+  verifyDetected,
 } = require("../config/sensor/crud");
 const { verifyToken } = require("../config/security");
 const router = express.Router();
@@ -61,12 +63,19 @@ router.post("/check-code", verifyToken, async (req, res) => {
 // 이건 보드에서 일정 시간마다 확인하는 api
 router.post("/read-code", async (req, res) => {
   console.log(req.body); // 보드에 저장된 고유 킥보드 값을 보낼거임
-  const { scooterIdx } = req.body;
-  const { auth_code, user_id, is_verified } = await getMyScooterIdxCode(scooterIdx);
 
-  res.send({ code: auth_code, userId: user_id, isVerified: is_verified });
+  const { scooterIdx, detected } = req.body;
+  await updateUsedScooter(scooterIdx, detected);
+  const data = await getMyScooterIdxCode(scooterIdx);
+  if (data) {
+    const { auth_code, user_id, is_verified } = data;
+    res.status(200).send({ authCode: auth_code, userId: user_id, isVerified: is_verified });
+  } else {
+    res.status(400).send("not created");
+  }
 });
 
+// 테스트용으로 만든 api 안쓸거임
 router.post("/sensor", (req, res) => {
   const data = req.body;
   console.log(data);
@@ -75,18 +84,24 @@ router.post("/sensor", (req, res) => {
 });
 
 // 사용 종료
-router.post("/finish", async (req, res) => {
-  const { userId } = req.body;
-
-  const result = await finishUse(userId);
-
-  if (result) {
-    res.status(200).send({ code: 200, message: "사용 정상 종료" });
+router.post("/finish", verifyToken, async (req, res) => {
+  const userId = req.decoded.userId;
+  const { scooterIdx } = req.body;
+  const data = await verifyDetected(scooterIdx);
+  console.log(data);
+  if (data.scooter_use === "Y") {
+    const result = await finishUse(userId);
+    if (result) {
+      res.status(200).send({ code: 200, message: "사용 정상 종료" });
+    } else {
+      res.status(500).send({ code: 500, message: "사용 종료 실패" });
+    }
   } else {
-    res.status(500).send({ code: 500, message: "사용 종료 실패" });
+    res.status(401).send({ code: 401, message: "헬멧을 보관함에 넣어주세요" });
   }
 });
 
+// 이거는 킥보드에서 키패드 입력으로 보내려고 했는데 일단 안쓰는 api
 router.post("/auth-status", async (req, res) => {
   // 성공 시 userId, 성공 상태 전달
   const { inputCode, phone } = req.body;

@@ -20,7 +20,6 @@ const authUser = async (userId, password) => {
 };
 
 const verifyPassword = async (plainPw, hashedPw) => {
-  console.log(plainPw, hashedPw);
   return bcrypt.compare(plainPw, hashedPw);
 };
 
@@ -49,7 +48,6 @@ const verifyToken = (req, res, next) => {
 };
 
 const verifyAdmin = (req, res, next) => {
-  console.log(req.decoded.admin);
   if (req.decoded.admin) {
     return next();
   } else {
