@@ -60,12 +60,11 @@ router.post("/check-code", verifyToken, async (req, res) => {
   }
 });
 
-// 이건 보드에서 일정 시간마다 확인하는 api
+// 이건 킥보드 보드에서 일정 시간마다 인증번호 확인하는 api
 router.post("/read-code", async (req, res) => {
-  console.log(req.body); // 보드에 저장된 고유 킥보드 값을 보낼거임
+  console.log(req.body);
 
-  const { scooterIdx, detected } = req.body;
-  await updateUsedScooter(scooterIdx, detected);
+  const { scooterIdx } = req.body;
   const data = await getMyScooterIdxCode(scooterIdx);
   if (data) {
     const { auth_code, user_id, is_verified } = data;
@@ -73,6 +72,16 @@ router.post("/read-code", async (req, res) => {
   } else {
     res.status(400).send("not created");
   }
+});
+
+// 헬멧 감지상태 업데이트 api
+router.post("/update-detect", async (req, res) => {
+  console.log(req.body);
+
+  const { scooterIdx, detected } = req.body;
+  await updateUsedScooter(scooterIdx, detected);
+
+  res.status(200).send({ code: 200, message: "헬멧 상태 업데이트" });
 });
 
 // 테스트용으로 만든 api 안쓸거임
