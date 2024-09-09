@@ -47,6 +47,9 @@ const verifyToken = (req, res, next) => {
   }
 };
 
+// 세션값 검증하는 함수
+//
+
 const verifyAdmin = (req, res, next) => {
   if (req.decoded.admin) {
     return next();

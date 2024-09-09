@@ -9,6 +9,8 @@ const {
   finishUse,
   updateUsedScooter,
   verifyDetected,
+  getMyScooterVerified,
+  getUserAlcoholValue,
 } = require("../config/sensor/crud");
 const { verifyToken } = require("../config/security");
 const router = express.Router();
@@ -31,7 +33,6 @@ router.post("/generate-code", verifyToken, async (req, res) => {
   }
 });
 
-// 킥보드 고유값을 회원테이블에 저장한다면?
 // 이건 프론트에서 인증번호 입력하는 api.
 router.post("/check-code", verifyToken, async (req, res) => {
   // 웹페이지에서 인증번호 입력
@@ -76,7 +77,7 @@ router.post("/read-code", async (req, res) => {
 
 // 헬멧 감지상태 업데이트 api
 router.post("/update-detect", async (req, res) => {
-  console.log(req.body);
+  console.log("update-detect request:", req.body);
 
   const { scooterIdx, detected } = req.body;
   await updateUsedScooter(scooterIdx, detected);
@@ -84,12 +85,39 @@ router.post("/update-detect", async (req, res) => {
   res.status(200).send({ code: 200, message: "헬멧 상태 업데이트" });
 });
 
-// 테스트용으로 만든 api 안쓸거임
-router.post("/sensor", (req, res) => {
-  const data = req.body;
-  console.log(data);
+// 인증번호 검증 확인 api
+router.post("/read-verified", async (req, res) => {
+  console.log("read-verified request:", req.body);
 
-  res.status(200).send({ message: "data upload success" });
+  const { scooterIdx } = req.body;
+
+  const result = await getMyScooterVerified(scooterIdx);
+
+  if (result !== undefined && result.is_verified === 1) {
+    res.status(200).send({ code: 200, message: "킥보드 사용중(해제)", isVerified: result.is_verified });
+  } else {
+    res.status(200).send({ code: 200, message: "킥보드 반납(잠금)", isVerified: 0 });
+  }
+});
+
+// 알코올 수치 확인 api
+router.get("/read-alcohol", async (req, res) => {
+  console.log(req.query);
+  const { idx, userId } = req.query;
+  const data = await getUserAlcoholValue(idx, userId);
+  console.log(data);
+  if (data.length <= 0) {
+    res.status(200).send({ code: 200, message: "음주 측정값 없음", accept: 0 });
+    res.end();
+  } else {
+    const value = data[0].alcohol_value;
+    if (value < 120) {
+      // 알코올 수치 120 미만일때만 동작하도록 조건 추가
+      res.send({ code: 200, message: "음주 측정 통과", accept: 1 });
+    } else {
+      res.send({ code: 200, message: "음주운전 하려고해요", accept: 0 });
+    }
+  }
 });
 
 // 사용 종료

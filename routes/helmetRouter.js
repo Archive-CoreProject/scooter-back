@@ -9,7 +9,7 @@ router.get("/", (req, res) => {
 router.post("/set-data", async (req, res) => {
   const { alcohol, userId, helmetIdx } = req.body;
 
-  console.log(req.body);
+  console.log("set-data: ", req.body);
   await updateSensorData(userId, helmetIdx, alcohol / 10);
   res.status(200).send({ code: 200, message: "success" });
 });

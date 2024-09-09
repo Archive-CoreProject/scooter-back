@@ -45,6 +45,28 @@ const getMyScooterIdxCode = async (scooterIdx) => {
   }
 };
 
+const getMyScooterVerified = async (scooterIdx) => {
+  const sql = "select is_verified from tb_user where use_scooter_idx = ?";
+  try {
+    const [rows] = await conn.promise().query(sql, [scooterIdx]);
+    // console.log(rows);
+    return rows[0];
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+const getUserAlcoholValue = async (idx, userId) => {
+  const sql =
+    "select alcohol_value from tb_alcohol_detection where hm_idx = ? and user_id = ? order by detected_at desc limit 1";
+  try {
+    const [rows] = await conn.promise().query(sql, [idx, userId]);
+    return rows;
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
 // 헬멧이 보관함에 담겨있을 때 / 없을 때 사용중인거 업데이트하는 쿼리문
 const updateUsedScooter = async (scooterIdx, detected) => {
   const sql = "update tb_scooter set scooter_use = ? where scooter_idx = ?";
@@ -115,4 +137,6 @@ module.exports = {
   finishUse,
   updateUsedScooter,
   verifyDetected,
+  getMyScooterVerified,
+  getUserAlcoholValue,
 };
