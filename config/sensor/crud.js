@@ -45,6 +45,7 @@ const getMyScooterIdxCode = async (scooterIdx) => {
   }
 };
 
+// 사용자가 이용하는 킥보드 인증번호 통과했는지 확인하는 쿼리문
 const getMyScooterVerified = async (scooterIdx) => {
   const sql = "select is_verified from tb_user where use_scooter_idx = ?";
   try {
@@ -56,11 +57,25 @@ const getMyScooterVerified = async (scooterIdx) => {
   }
 };
 
+// 현재 날짜의 가장 최근 음주감지기록 추출
 const getUserAlcoholValue = async (idx, userId) => {
+  const date = new Date();
+  const formattedDate = date
+    .toLocaleString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+    .replace(/\./g, "")
+    .replace(/ /g, "-")
+    .trim();
+
+  console.log(formattedDate); // "YYYY-MM-DD" 형식으로 출력됩니다.
   const sql =
-    "select alcohol_value from tb_alcohol_detection where hm_idx = ? and user_id = ? order by detected_at desc limit 1";
+    "select alcohol_value from tb_alcohol_detection where hm_idx = ? and user_id = ? and ? =  date_format(detected_at, '%Y-%m-%d') order by detected_at desc limit 1";
   try {
-    const [rows] = await conn.promise().query(sql, [idx, userId]);
+    const [rows] = await conn.promise().query(sql, [idx, userId, formattedDate]);
     return rows;
   } catch (err) {
     console.log(err.message);
@@ -75,11 +90,23 @@ const updateUsedScooter = async (scooterIdx, detected) => {
   conn.commit();
 };
 
+// 인증통과상태로 변경하는 쿼리문
 const updateVerified = async (userId) => {
   const sql = "update tb_user set is_verified = 1 where user_id = ?";
 
   await conn.promise().query(sql, [userId]);
   conn.commit();
+};
+
+// 인증 통과하면 대여시도기록 테이블에 로그 추가
+const insertRentalTryLog = async (userId, scooterIdx) => {
+  const sql = "insert into tb_rental_log(user_id, scooter_idx) values(?,?)";
+
+  try {
+    await conn.promise().query(sql, [userId, scooterIdx]);
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 // 헬멧이 보관함에 담겨있는지 확인하는 쿼리문
@@ -115,10 +142,14 @@ const updateSensorData = async (userId, hmIdx, alcohol) => {
 };
 
 // 반납하면 사용한 스쿠터 식별자, isVerified 삭제
-const finishUse = async (userId) => {
-  const sql = "update tb_user set is_verified = 0, use_scooter_idx = null where user_id = ?";
-
-  const [rows] = await conn.promise().query(sql, [userId]);
+const finishUse = async (userId, scooterIdx, rentalDt, rentalStTm, rentalRtTm, payMethod, paidAmount, paidStatus) => {
+  const updateSQL = "update tb_user set is_verified = 0, use_scooter_idx = null where user_id = ?";
+  const insertSQL =
+    "insert into tb_rental(user_id, scooter_idx, rental_dt, rental_st_tm, rental_rt_tm, pay_method, paid_amount, paid_status) values(?,?,?,?,?,?,?,?)";
+  const [rows] = await conn.promise().query(updateSQL, [userId]);
+  const [insertRows] = await conn
+    .promise()
+    .query(insertSQL, [userId, scooterIdx, rentalDt, rentalStTm, rentalRtTm, payMethod, paidAmount, paidStatus]);
   if (rows.affectedRows > 0) {
     conn.commit();
     return true;
@@ -139,4 +170,5 @@ module.exports = {
   verifyDetected,
   getMyScooterVerified,
   getUserAlcoholValue,
+  insertRentalTryLog,
 };

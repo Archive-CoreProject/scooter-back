@@ -11,6 +11,7 @@ const {
   verifyDetected,
   getMyScooterVerified,
   getUserAlcoholValue,
+  insertRentalTryLog,
 } = require("../config/sensor/crud");
 const { verifyToken } = require("../config/security");
 const router = express.Router();
@@ -49,8 +50,9 @@ router.post("/check-code", verifyToken, async (req, res) => {
 
   if (authCode === code) {
     try {
-      await updateVerified(userId);
-      await delAuthCode(userId);
+      await updateVerified(userId); // 인증통과상태로 변경
+      await insertRentalTryLog(userId, scooterIdx); // 대여시도로그 DB에 추가
+      await delAuthCode(userId); // 인증통과했으니 인증번호 삭제
     } catch (err) {
       console.log(err);
       res.status(500).send({ code: 500, message: "오류 발생" });
@@ -111,8 +113,8 @@ router.get("/read-alcohol", async (req, res) => {
     res.end();
   } else {
     const value = data[0].alcohol_value;
-    if (value < 120) {
-      // 알코올 수치 120 미만일때만 동작하도록 조건 추가
+    if (value < 150) {
+      // 알코올 수치 150 미만일때만 동작하도록 조건 추가
       res.send({ code: 200, message: "음주 측정 통과", accept: 1 });
     } else {
       res.send({ code: 200, message: "음주운전 하려고해요", accept: 0 });
@@ -123,11 +125,21 @@ router.get("/read-alcohol", async (req, res) => {
 // 사용 종료
 router.post("/finish", verifyToken, async (req, res) => {
   const userId = req.decoded.userId;
-  const { scooterIdx } = req.body;
+  const { scooterIdx, rentalDt, rentalStTm, rentalRtTm, payMethod, paidAmount, paidStatus } = req.body;
+  console.log(req.body);
   const data = await verifyDetected(scooterIdx);
   console.log(data);
   if (data.scooter_use === "Y") {
-    const result = await finishUse(userId);
+    const result = await finishUse(
+      userId,
+      scooterIdx,
+      rentalDt,
+      rentalStTm,
+      rentalRtTm,
+      payMethod,
+      paidAmount,
+      paidStatus
+    );
     if (result) {
       res.status(200).send({ code: 200, message: "사용 정상 종료" });
     } else {

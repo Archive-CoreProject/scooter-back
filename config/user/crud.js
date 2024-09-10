@@ -50,4 +50,11 @@ const readUserHistory = async (userId) => {
   return rows;
 };
 
-module.exports = { insertUser, getUser, getUserByPhone, readUserList, readUserHistory };
+const readRentalList = async (userId) => {
+  const sql = "select rental_dt, rental_st_tm, rental_rt_tm, paid_amount from tb_rental where user_id = ?";
+
+  const [rows] = await conn.promise().query(sql, [userId]);
+  return rows;
+};
+
+module.exports = { insertUser, getUser, getUserByPhone, readUserList, readUserHistory, readRentalList };
