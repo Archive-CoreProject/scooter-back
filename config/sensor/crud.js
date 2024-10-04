@@ -59,23 +59,12 @@ const getMyScooterVerified = async (scooterIdx) => {
 
 // 현재 날짜의 가장 최근 음주감지기록 추출
 const getUserAlcoholValue = async (idx, userId) => {
-  const date = new Date();
-  const formattedDate = date
-    .toLocaleString("ko-KR", {
-      timeZone: "Asia/Seoul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    })
-    .replace(/\./g, "")
-    .replace(/ /g, "-")
-    .trim();
-
-  console.log(formattedDate); // "YYYY-MM-DD" 형식으로 출력됩니다.
+  // 현재시간 기준 5분 전부터만 음주감지기록 조회
   const sql =
-    "select alcohol_value from tb_alcohol_detection where hm_idx = ? and user_id = ? and ? =  date_format(detected_at, '%Y-%m-%d') order by detected_at desc limit 1";
+    "select * from tb_alcohol_detection where detected_at between now() - interval 5 minute and now() and user_id = ? and hm_idx = ? order by detected_at desc limit 1";
   try {
-    const [rows] = await conn.promise().query(sql, [idx, userId, formattedDate]);
+    const [rows] = await conn.promise().query(sql, [userId, idx]);
+    console.log(rows);
     return rows;
   } catch (err) {
     console.log(err.message);

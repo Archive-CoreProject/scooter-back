@@ -36,15 +36,17 @@ router.post("/login", async (req, res) => {
 
   if (user.length > 0) {
     const data = user[0];
+    console.log(data);
     let isAdmin = false;
     // role : "일반", "관리자", "제한" 존재
     if (data.user_role === "관리자") {
       isAdmin = true;
       console.log("관리자 계정 로그인");
     } else if (data.user_role === "제한") {
+      console.log(data.user_role);
       // 사용 제한인 유저는 로그인 불가능
-      res.status(403).send({ message: "사용이 제한된 계정입니다. 관리자에게 문의해주세요." }).end();
-    } else {
+      res.status(403).send({ message: "사용이 제한된 계정입니다." }).end();
+      return;
     }
     token = jwt.sign(
       {
@@ -80,6 +82,26 @@ router.post("/signup", async (req, res) => {
 
 // 가입한 유저 전체 조회 api
 router.get("/users", verifyToken, verifyAdmin, async (req, res) => {
+  //  #swagger.description = '유저 전체 조회'
+  //  #swagger.tags = ['get']
+  /*  #swagger.parameters[''] = {
+                  in: 'body',
+                  schema: {
+                      user: 'testuser',
+                      password: 'test1234',
+                  }
+  } */
+  /*  #swagger.responses[201] = {
+              description: '유저 전체 조회 성공',
+              schema: {
+                  "data": {
+                    "result": "유저 리스트"
+                  }
+              }
+  } */
+  /*  #swagger.responses[400] = {
+              description: 'Bad Request'
+  } */
   const result = await readUserList();
   res.status(200).send({ code: 200, result });
 });

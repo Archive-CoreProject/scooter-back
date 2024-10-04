@@ -113,8 +113,8 @@ router.get("/read-alcohol", async (req, res) => {
     res.end();
   } else {
     const value = data[0].alcohol_value;
-    if (value < 150) {
-      // 알코올 수치 150 미만일때만 동작하도록 조건 추가
+    if (value < 130) {
+      // 알코올 수치 130 미만일때만 동작하도록 조건 추가
       res.send({ code: 200, message: "음주 측정 통과", accept: 1 });
     } else {
       res.send({ code: 200, message: "음주운전 하려고해요", accept: 0 });
